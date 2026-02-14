@@ -5,10 +5,8 @@ from todo.forms import TaskForm
 
 
 class TaskModelTest(TestCase):
-    # Тесты для модели Task
     
     def test_task_creation(self):
-        # Тест 1: Создание задачи с дефолтными значениями
         task = Task.objects.create(title="Тестовая задача")
         
         self.assertEqual(task.title, "Тестовая задача")
@@ -18,27 +16,22 @@ class TaskModelTest(TestCase):
 
 
 class TaskCollectionTest(TestCase):
-    # Тесты для работы с коллекциями задач
     
     def setUp(self):
-        # Создание тестовых данных
         self.task1 = Task.objects.create(title="Первая задача", status=Task.Status.TODO)
         self.task2 = Task.objects.create(title="Вторая задача", status=Task.Status.IN_PROGRESS)
         self.task3 = Task.objects.create(title="Третья задача", status=Task.Status.DONE)
     
     def test_task_list_ordering(self):
-        # Тест 2: Проверка сортировки задач по дате создания (новые первыми)
         tasks = Task.objects.all().order_by('-created_at')
         tasks_list = list(tasks)
         
         self.assertEqual(len(tasks_list), 3)
-        # Проверяем, что последняя созданная задача идет первой
         self.assertEqual(tasks_list[0].title, "Третья задача")
         self.assertEqual(tasks_list[1].title, "Вторая задача")
         self.assertEqual(tasks_list[2].title, "Первая задача")
     
     def test_task_filtering_by_status(self):
-        # Тест 3: Фильтрация задач по статусу
         todo_tasks = Task.objects.filter(status=Task.Status.TODO)
         progress_tasks = Task.objects.filter(status=Task.Status.IN_PROGRESS)
         done_tasks = Task.objects.filter(status=Task.Status.DONE)
@@ -53,28 +46,23 @@ class TaskCollectionTest(TestCase):
 
 
 class TaskStatusToggleTest(TestCase):
-    # Тесты для переключения статуса задачи
     
     def test_status_toggle_cycle(self):
-        # Тест 4: Циклическое переключение статуса через все состояния
         task = Task.objects.create(title="Тестовая задача", status=Task.Status.TODO)
         order = [Task.Status.TODO, Task.Status.IN_PROGRESS, Task.Status.DONE]
         
-        # Первое переключение: TODO -> IN_PROGRESS
         current_index = order.index(task.status)
         next_index = (current_index + 1) % len(order)
         task.status = order[next_index]
         task.save()
         self.assertEqual(task.status, Task.Status.IN_PROGRESS)
         
-        # Второе переключение: IN_PROGRESS -> DONE
         current_index = order.index(task.status)
         next_index = (current_index + 1) % len(order)
         task.status = order[next_index]
         task.save()
         self.assertEqual(task.status, Task.Status.DONE)
         
-        # Третье переключение: DONE -> TODO (цикл замыкается)
         current_index = order.index(task.status)
         next_index = (current_index + 1) % len(order)
         task.status = order[next_index]
@@ -83,10 +71,8 @@ class TaskStatusToggleTest(TestCase):
 
 
 class TaskFormTest(TestCase):
-    # Тесты для формы TaskForm
     
     def test_form_valid_data(self):
-        # Тест 5: Валидация формы с корректными данными
         form_data = {
             'title': 'Новая задача',
             'status': Task.Status.TODO
@@ -100,20 +86,17 @@ class TaskFormTest(TestCase):
 
 
 class TaskViewsTest(TestCase):
-    # Тесты для представлений (views)
     
     def setUp(self):
-        # Настройка клиента и тестовых данных
         self.client = Client()
         self.task = Task.objects.create(title="Тестовая задача", status=Task.Status.TODO)
     
     def test_task_create_view_post(self):
-        # Тест 6: POST запрос на создание задачи через view
         form_data = {
             'title': 'Новая задача через форму',
             'status': Task.Status.IN_PROGRESS
         }
         response = self.client.post(reverse('task_create'), data=form_data)
         
-        self.assertEqual(response.status_code, 302)  # Редирект после создания
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(Task.objects.filter(title='Новая задача через форму').exists())
